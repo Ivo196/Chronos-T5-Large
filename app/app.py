@@ -5,6 +5,7 @@ import torch
 from chronos import ChronosPipeline
 import numpy as np
 
+st.set_page_config(layout="wide")  # Configurar página para usar todo el ancho
 
 def predict_chronos_t5(data, prediction_length=7):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -27,25 +28,31 @@ def predict_chronos_t5(data, prediction_length=7):
     #Create dataframe 
     prediction_df = pd.Series(data=median, index=pred_dates, name='Predictions')
     return prediction_df
+
+
 # Title and description 
 st.title('Crypto Price Prediction 🚀')
 st.write('''
 This app allows you to upload a BTC-USD dataset, visualize historical data, and predict the price. 
 ''')
 
+# Sidebar
+st.sidebar.title('Data extraction')
+
+# TODO: Make a sidebar that display multiple ticker options to choose from. Based on selected ticker, download tha data and continue the process 
+
 # Upload the dataset
-uploaded_file = st.file_uploader('Upload your crypto dataset', type=['csv'])
+uploaded_file = st.sidebar.('Upload your crypto dataset', type=['csv'])
 if uploaded_file is not None:
     data = pd.read_csv(uploaded_file, parse_dates=['Date'], index_col='Date')
-    st.success('Dataset uploaded successfully!')
+    st.sidebar.success('Dataset uploaded successfully!')
 else:
-    st.info('Using BTC-USD as an example')
+    st.sidebar.info('Using BTC-USD as an example')
     data = pd.read_csv('data/BTC-USD.csv', parse_dates=['Date'], index_col='Date')
 
 # Visualize data uploaded
-
-if st.checkbox('Show Data'):
-    st.write(data.head())
+if st.sidebar.checkbox('Show Data'):
+    st.sidebar.write(data.head())
 
 if st.checkbox('Show Historical Data'):
     st.subheader("Historical Data Visualization")
