@@ -11,7 +11,7 @@ def predict_chronos_t5(data, prediction_length=7):
     print(device)
 
     pipeline = ChronosPipeline.from_pretrained(
-        'amazon/chronos-t5-large',
+        'amazon/chronos-t5-tiyn',
         device_map = device,
         torch_dtype = torch.float32
     )
