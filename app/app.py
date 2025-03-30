@@ -5,7 +5,7 @@ import torch
 from chronos import ChronosPipeline
 import numpy as np
 
-st.set_page_config(layout="wide")  # Configurar página para usar todo el ancho
+# st.set_page_config(layout="wide")  # Configurar página para usar todo el ancho
 
 def predict_chronos_t5(data, prediction_length=7):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -42,7 +42,7 @@ st.sidebar.title('Data extraction')
 # TODO: Make a sidebar that display multiple ticker options to choose from. Based on selected ticker, download tha data and continue the process 
 
 # Upload the dataset
-uploaded_file = st.sidebar.('Upload your crypto dataset', type=['csv'])
+uploaded_file = st.sidebar.file_uploader('Upload your crypto dataset', type=['csv'])
 if uploaded_file is not None:
     data = pd.read_csv(uploaded_file, parse_dates=['Date'], index_col='Date')
     st.sidebar.success('Dataset uploaded successfully!')
@@ -56,7 +56,7 @@ if st.sidebar.checkbox('Show Data'):
 
 if st.checkbox('Show Historical Data'):
     st.subheader("Historical Data Visualization")
-    fig, ax = plt.subplots(figsize=(10,5))
+    fig, ax = plt.subplots(figsize=(15,5))
     ax.plot(data.index, data['Close'], color='Blue', label="Closing Price", linewidth=0.8)
     ax.set_xlabel("Date")
     ax.set_ylabel("Price")
@@ -75,7 +75,7 @@ if st.button('Make a prediction'):
     st.write(prediction_df)
 
     
-    fig2, ax2 = plt.subplots(figsize=(10,5))
+    fig2, ax2 = plt.subplots(figsize=(15,5))
     ax2.plot(prediction_df.index, prediction_df, color='Blue', marker='o', label='Forecast')
     ax2.set_xlabel('Dates')
     ax2.tick_params(axis='x', labelrotation=45)
