@@ -40,18 +40,18 @@ This app allows you to upload a BTC-USD dataset, visualize historical data, and 
 # Sidebar
 st.sidebar.title('Data extraction')
 
-token_options = ['BTC-USD','ETH-USD','AAPL-USD']
+token_options = ['ETH-USD','BTC-USD','AAPL-USD']
 
 # TODO: Make a sidebar that display multiple ticker options to choose from. Based on selected ticker, download tha data and continue the process 
 
 # Upload the dataset
 #uploaded_file = st.sidebar.file_uploader('Upload your crypto dataset', type=['csv'])
-selected_option = st.selectbox('Please, select an option:',token_options, index=0)
+selected_option = st.sidebar.selectbox('Please, select an option:',token_options, placeholder='')
 if selected_option is not None:
     data = yf.download(selected_option, interval='1d')
     data = data.droplevel('Ticker', axis=1)
     data.to_csv(f'data/{selected_option}.csv')
-    st.success('DataSet Downloaded')
+    st.sidebar.success('DataSet Downloaded')
 else:
     st.sidebar.info('Using BTC-USD as an example')
     data = pd.read_csv('data/BTC-USD.csv', parse_dates=['Date'], index_col='Date')
@@ -76,13 +76,18 @@ prediction_length = st.number_input('Days to predict', min_value=1, max_value=30
 
 # Button to make a prediction and show results
 if st.button('Make a prediction'):
-    st.subheader(f'The price for the following {prediction_length} days is ...')
-    prediction_df = predict_chronos_t5(data, prediction_length)
-    st.write(prediction_df)
+    with st.spinner('Thinking...'):
+        prediction_df = predict_chronos_t5(data, prediction_length)
+        st.session_state.prediction_df = prediction_df
 
-    
+if 'prediction_df' in st.session_state:
+    #Title
+    st.subheader(f'The price for the following {prediction_length} days is ...')
+    # Box with predictions
+    st.sidebar.write(st.session_state.prediction_df)
+    # Forecasting Plot
     fig2, ax2 = plt.subplots(figsize=(15,5))
-    ax2.plot(prediction_df.index, prediction_df, color='Blue', marker='o', label='Forecast')
+    ax2.plot(st.session_state.prediction_df.index, st.session_state.prediction_df, color='Blue', marker='o', label='Forecast')
     ax2.set_xlabel('Dates')
     ax2.tick_params(axis='x', labelrotation=45)
     ax2.set_ylabel('Price')
