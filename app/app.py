@@ -42,28 +42,29 @@ st.sidebar.title('Data extraction')
 
 token_options = ['ETH-USD','BTC-USD','AAPL-USD']
 
-# TODO: Make a sidebar that display multiple ticker options to choose from. Based on selected ticker, download tha data and continue the process 
-
 # Upload the dataset
 #uploaded_file = st.sidebar.file_uploader('Upload your crypto dataset', type=['csv'])
 selected_option = st.sidebar.selectbox('Please, select an option:',token_options, placeholder='')
-if selected_option is not None:
+if st.sidebar.button('Download Update Data'):
     data = yf.download(selected_option, interval='1d')
     data = data.droplevel('Ticker', axis=1)
+    st.session_state.data = data
     data.to_csv(f'data/{selected_option}.csv')
     st.sidebar.success('DataSet Downloaded')
-else:
+elif 'data' in st.session_state:
+    st.sidebar.success('DataSet Downloaded')
+else:    
     st.sidebar.info('Using BTC-USD as an example')
     data = pd.read_csv('data/BTC-USD.csv', parse_dates=['Date'], index_col='Date')
 
 # Visualize data uploaded
 if st.sidebar.checkbox('Show Data'):
-    st.sidebar.write(data.head())
+    st.sidebar.write(st.session_state.data.head())
 
 if st.checkbox('Show Historical Data'):
     st.subheader("Historical Data Visualization")
     fig, ax = plt.subplots(figsize=(15,5))
-    ax.plot(data.index, data['Close'], color='Blue', label="Closing Price", linewidth=0.8)
+    ax.plot(st.session_state.data.index, st.session_state.data['Close'], color='Blue', label="Closing Price", linewidth=0.8)
     ax.set_xlabel("Date")
     ax.set_ylabel("Price")
     ax.set_title("Historical Data")
@@ -77,7 +78,7 @@ prediction_length = st.number_input('Days to predict', min_value=1, max_value=30
 # Button to make a prediction and show results
 if st.button('Make a prediction'):
     with st.spinner('Thinking...'):
-        prediction_df = predict_chronos_t5(data, prediction_length)
+        prediction_df = predict_chronos_t5(st.session_state.data, prediction_length)
         st.session_state.prediction_df = prediction_df
 
 if 'prediction_df' in st.session_state:
