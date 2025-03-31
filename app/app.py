@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import torch
 from chronos import ChronosPipeline
 import numpy as np
+import yfinance as yf
 
 # st.set_page_config(layout="wide")  # Configurar página para usar todo el ancho
 
@@ -39,13 +40,18 @@ This app allows you to upload a BTC-USD dataset, visualize historical data, and 
 # Sidebar
 st.sidebar.title('Data extraction')
 
+token_options = ['BTC-USD','ETH-USD','AAPL-USD']
+
 # TODO: Make a sidebar that display multiple ticker options to choose from. Based on selected ticker, download tha data and continue the process 
 
 # Upload the dataset
-uploaded_file = st.sidebar.file_uploader('Upload your crypto dataset', type=['csv'])
-if uploaded_file is not None:
-    data = pd.read_csv(uploaded_file, parse_dates=['Date'], index_col='Date')
-    st.sidebar.success('Dataset uploaded successfully!')
+#uploaded_file = st.sidebar.file_uploader('Upload your crypto dataset', type=['csv'])
+selected_option = st.selectbox('Please, select an option:',token_options, index=0)
+if selected_option is not None:
+    data = yf.download(selected_option, interval='1d')
+    data = data.droplevel('Ticker', axis=1)
+    data.to_csv(f'data/{selected_option}.csv')
+    st.success('DataSet Downloaded')
 else:
     st.sidebar.info('Using BTC-USD as an example')
     data = pd.read_csv('data/BTC-USD.csv', parse_dates=['Date'], index_col='Date')
