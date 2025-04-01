@@ -42,24 +42,28 @@ st.sidebar.title('Data extraction')
 
 token_options = ['ETH-USD','BTC-USD','AAPL-USD']
 
+
+
 # Upload the dataset
 #uploaded_file = st.sidebar.file_uploader('Upload your crypto dataset', type=['csv'])
 selected_option = st.sidebar.selectbox('Please, select an option:',token_options, placeholder='')
 if st.sidebar.button('Download Update Data'):
-    data = yf.download(selected_option, interval='1d')
-    data = data.droplevel('Ticker', axis=1)
-    st.session_state.data = data
-    data.to_csv(f'data/{selected_option}.csv')
-    st.sidebar.success('DataSet Downloaded')
+    with st.spinner('Downloading Data...'): 
+        data = yf.download(selected_option, interval='1d')
+        data = data.droplevel('Ticker', axis=1)
+        st.session_state.data = data
+        data.to_csv(f'data/{selected_option}.csv')
+        st.sidebar.success('Data Downloaded')
 elif 'data' in st.session_state:
-    st.sidebar.success('DataSet Downloaded')
+    st.sidebar.success('Data Downloaded')
 else:    
-    st.sidebar.info('Using BTC-USD as an example')
-    data = pd.read_csv('data/BTC-USD.csv', parse_dates=['Date'], index_col='Date')
+    st.sidebar.info('Download a data for start')
 
 # Visualize data uploaded
-if st.sidebar.checkbox('Show Data'):
-    st.sidebar.write(st.session_state.data.head())
+# Cheack if data if avaible first 
+if 'data' in st.session_state:
+    if st.sidebar.checkbox('Show Data'):
+        st.sidebar.write(st.session_state.data.head())
 
 if st.checkbox('Show Historical Data'):
     st.subheader("Historical Data Visualization")
