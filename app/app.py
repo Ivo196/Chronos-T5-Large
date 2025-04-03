@@ -5,31 +5,10 @@ import torch
 from chronos import ChronosPipeline
 import numpy as np
 import yfinance as yf
+from models.chronos_t5 import predict_chronos_t5
+from data.utils import download_data
 
 # st.set_page_config(layout="wide")  # Configurar página para usar todo el ancho
-
-def predict_chronos_t5(data, prediction_length=7, model='tiny'):
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(device)
-
-    pipeline = ChronosPipeline.from_pretrained(
-        f'amazon/chronos-t5-{model}',
-        device_map = device,
-        torch_dtype = torch.float32
-    )
-    context = torch.tensor(data=data['Close'].values, dtype=torch.float32)
-
-    forecast = pipeline.predict(context, prediction_length, num_samples=100,)
-    low, median, high = np.quantile(forecast[0].numpy(), [0.1, 0.5, 0.9], axis=0)
-    
-    #Add dates for the prediction horizon
-    last_date = data.index[-1]
-    pred_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=prediction_length)
-
-    #Create dataframe 
-    prediction_df = pd.Series(data=median, index=pred_dates, name='Predictions')
-    return prediction_df
-
 
 # Title and description 
 st.title('Crypto Price Prediction 🚀')
@@ -48,10 +27,8 @@ model_options = ['tiny','base','large']
 selected_option = st.sidebar.selectbox('Choose your favorite token:',token_options, index=None, placeholder='Choose an option')
 if st.sidebar.button('Download Update Data',type='primary') and selected_option is not None:
     with st.spinner('Downloading Data...'): 
-        data = yf.download(selected_option, interval='1d')
-        data = data.droplevel('Ticker', axis=1)
+        data = download_data(selected_option)
         st.session_state.data = data
-        data.to_csv(f'data/{selected_option}.csv')
         st.sidebar.success('Data Downloaded')
 elif 'data' in st.session_state:
     st.sidebar.success('Data Downloaded')
@@ -66,18 +43,24 @@ if 'data' in st.session_state:
 
     if st.checkbox('Show Historical Data'):
         st.subheader("Historical Data Visualization")
-        fig, ax = plt.subplots(figsize=(15,5))
-        ax.plot(st.session_state.data.index, st.session_state.data['Close'], color='Blue', label="Closing Price", linewidth=0.8)
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Price")
-        ax.set_title("Historical Data")
-        ax.legend()
-        st.pyplot(fig)
-
+        st.line_chart(st.session_state.data['Close'])
+        # fig, ax = plt.subplots(figsize=(15,5))
+        # ax.plot(st.session_state.data.index, st.session_state.data['Close'], color='Blue', label="Closing Price", linewidth=0.8)
+        # ax.set_xlabel("Date")
+        # ax.set_ylabel("Price")
+        # ax.set_title("Historical Data")
+        # ax.legend()
+        # st.pyplot(fig)
+    
+    col1, col2 = st.columns(2)
 
     # Days to forecast 
-    prediction_length = st.number_input('Days to predict', min_value=1, max_value=30, value=7, step=1)
-    model = st.radio('Choose the model:',model_options)
+    with col1:
+        prediction_length = st.number_input('Days to predict', min_value=1, max_value=30, value=7, step=1)
+    with col2:
+        model = st.radio('Choose the model:',model_options)
+
+
 
     # Button to make a prediction and show results
     if st.button('Make a prediction', type='secondary'):
