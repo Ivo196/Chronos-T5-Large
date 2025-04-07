@@ -1,6 +1,8 @@
-BTC-Indicators.csv
-BTC-I.csv
-BTC-USD.csv
-BTC.csv
-Datasets
+app/data/__pycache__
+app/models/__pycache__
 .env
+/data
+__pycache__/
+*.py[cod]
+*$py.class
+

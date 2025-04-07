@@ -9,6 +9,8 @@ from models.chronos_t5 import predict_chronos_t5
 from data.utils import download_data
 
 # st.set_page_config(layout="wide")  # Configurar página para usar todo el ancho
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+print(device)
 
 # Title and description 
 st.title('Crypto Price Prediction 🚀')
